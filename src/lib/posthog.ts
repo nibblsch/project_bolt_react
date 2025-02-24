@@ -1,15 +1,16 @@
 import posthog from 'posthog-js';
 import { config } from './config';
 
-if (config.isProduction) {
-  posthog.init(config.posthogKey, {
-    api_host: config.posthogHost,
-    capture_pageview: false,
-  });
-}
+// Initialize PostHog
+posthog.init(config.posthogKey, {
+  api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://app.posthog.com',
+  capture_pageview: true,
+  disable_session_recording: false
+});
 
+// Create a wrapper for analytics to handle production/development logging
 export const analytics = {
-  track: (event: string, properties?: Record<string, any>) => {
+  capture: (event: string, properties?: Record<string, any>) => {
     if (config.isProduction) {
       posthog.capture(event, properties);
     } else {
@@ -22,5 +23,5 @@ export const analytics = {
     } else {
       console.log('Analytics Identify:', userId, traits);
     }
-  },
+  }
 };

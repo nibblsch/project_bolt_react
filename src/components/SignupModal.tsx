@@ -24,17 +24,34 @@ export function SignupModal({ isOpen, onClose, selectedPlan = 'monthly' }: Signu
   const [childAge, setChildAge] = useState('');
   const [plan, setPlan] = useState(selectedPlan);
   const [error, setError] = useState('');
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+
+  const validatePassword = (pwd: string) => {
+    // Strong password validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(pwd);
+  };
 
   const handleInitialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (!validatePassword(password)) {
+      setShowPasswordRequirements(true);
+      setError('Password does not meet security requirements');
       return;
     }
 
-    analytics.track('signup_step_completed', { step: 'initial' });
+    analytics.capture('signup_started', {
+      email,
+      plan: selectedPlan
+    });
+
+    analytics.capture('signup_step', {
+      step: 'initial',
+      email
+    });
+
     setStep('details');
   };
 
@@ -47,11 +64,13 @@ export function SignupModal({ isOpen, onClose, selectedPlan = 'monthly' }: Signu
       return;
     }
 
-    analytics.track('signup_step_completed', {
+    analytics.capture('signup_step', {
       step: 'details',
-      plan_type: plan,
-      child_age_months: parseInt(childAge),
+      full_name: fullName,
+      child_age: childAge,
+      plan: selectedPlan
     });
+
     setStep('checkout');
   };
 
@@ -73,8 +92,9 @@ export function SignupModal({ isOpen, onClose, selectedPlan = 'monthly' }: Signu
 
       if (authError) throw authError;
 
-      analytics.track('signup_completed', {
-        plan_type: plan,
+      analytics.capture('signup_completed', {
+        plan: selectedPlan,
+        full_name: fullName,
         child_age_months: parseInt(childAge),
       });
 
@@ -121,9 +141,12 @@ export function SignupModal({ isOpen, onClose, selectedPlan = 'monthly' }: Signu
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
-            <p className="mt-1 text-sm text-gray-500">
-              Must be at least 8 characters long
-            </p>
+            {showPasswordRequirements && (
+              <p className="mt-1 text-sm text-red-500">
+                Must be at least 8 characters long and include at least one uppercase letter, 
+                one lowercase letter, one number, and one special character
+              </p>
+            )}
           </div>
           <Button type="submit" fullWidth>Continue</Button>
         </form>
@@ -153,16 +176,38 @@ export function SignupModal({ isOpen, onClose, selectedPlan = 'monthly' }: Signu
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Plan</label>
-            <select
-              value={plan}
-              onChange={(e) => setPlan(e.target.value as 'monthly' | 'annual')}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          <div className="flex space-x-4 mb-4">
+            <button
+              type="button"
+              onClick={() => setPlan('monthly')}
+              className={`flex-1 p-4 border rounded-lg ${
+                plan === 'monthly' 
+                  ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-300' 
+                  : 'border-gray-300'
+              }`}
             >
-              <option value="monthly">Monthly ($29.99/month)</option>
-              <option value="annual">Annual ($23.99/month)</option>
-            </select>
+              <div className="text-center">
+                <h3 className="font-semibold">Monthly</h3>
+                <p className="text-xl font-bold">$29.99/mo</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPlan('annual')}
+              className={`flex-1 p-4 border rounded-lg relative ${
+                plan === 'annual' 
+                  ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-300' 
+                  : 'border-gray-300'
+              }`}
+            >
+              <div className="absolute top-0 right-0 bg-green-500 text-white px-2 py-1 rounded-bl-lg text-xs">
+                Save 20%
+              </div>
+              <div className="text-center">
+                <h3 className="font-semibold">Annual</h3>
+                <p className="text-xl font-bold">$23.99/mo</p>
+              </div>
+            </button>
           </div>
           <Button type="submit" fullWidth>Continue to Payment</Button>
         </form>

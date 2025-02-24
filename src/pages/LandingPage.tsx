@@ -39,13 +39,13 @@ const FAQ_ITEMS: FAQItem[] = [
 export default function LandingPage() {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
-  const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
+  const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
 
   const handleGetStarted = (plan?: 'monthly' | 'annual') => {
     if (plan) {
       setSelectedPlan(plan);
     }
-    analytics.track('signup_started', { plan });
+    analytics.capture('signup_started', { plan });
     setIsSignupOpen(true);
   };
 
@@ -90,24 +90,24 @@ export default function LandingPage() {
               <div className="bg-white rounded-lg p-8 shadow-lg">
                 <h3 className="text-xl font-semibold mb-6">Before BabyGPT</h3>
                 <ul className="space-y-4">
-                  <li className="flex items-center text-red-500">
-                    <span className="mr-2">✕</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-red-500">✕</span>
                     Late-night Google spirals
                   </li>
-                  <li className="flex items-center text-red-500">
-                    <span className="mr-2">✕</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-red-500">✕</span>
                     Conflicting advice from forums
                   </li>
-                  <li className="flex items-center text-red-500">
-                    <span className="mr-2">✕</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-red-500">✕</span>
                     Waiting for pediatrician calls
                   </li>
-                  <li className="flex items-center text-red-500">
-                    <span className="mr-2">✕</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-red-500">✕</span>
                     Information overload
                   </li>
-                  <li className="flex items-center text-red-500">
-                    <span className="mr-2">✕</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-red-500">✕</span>
                     Stress and uncertainty
                   </li>
                 </ul>
@@ -116,24 +116,24 @@ export default function LandingPage() {
               <div className="bg-white rounded-lg p-8 shadow-lg">
                 <h3 className="text-xl font-semibold mb-6">With BabyGPT</h3>
                 <ul className="space-y-4">
-                  <li className="flex items-center text-green-500">
-                    <span className="mr-2">✓</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-green-500">✓</span>
                     Instant, reliable answers
                   </li>
-                  <li className="flex items-center text-green-500">
-                    <span className="mr-2">✓</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-green-500">✓</span>
                     Research-backed guidance
                   </li>
-                  <li className="flex items-center text-green-500">
-                    <span className="mr-2">✓</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-green-500">✓</span>
                     24/7 peace of mind
                   </li>
-                  <li className="flex items-center text-green-500">
-                    <span className="mr-2">✓</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-green-500">✓</span>
                     Clear, actionable advice
                   </li>
-                  <li className="flex items-center text-green-500">
-                    <span className="mr-2">✓</span>
+                  <li className="flex items-center text-gray-700">
+                    <span className="mr-2 text-green-500">✓</span>
                     Confident parenting decisions
                   </li>
                 </ul>
@@ -245,8 +245,11 @@ export default function LandingPage() {
                   Best Value
                 </div>
                 <h3 className="text-xl font-semibold mb-4">Annual</h3>
-                <div className="text-4xl font-bold mb-6">$23.99<span className="text-lg text-gray-500">/month</span></div>
-                <p className="text-indigo-600 mb-6">Save 20%</p>
+                <div className="flex items-center mb-6">
+                  <div className="text-4xl font-bold mr-2">$23.99</div>
+                  <div className="text-lg text-gray-500">/month</div>
+                  <span className="ml-4 text-indigo-600 text-sm">Save 20%</span>
+                </div>
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-center">
                     <span className="text-green-500 mr-2">✓</span>

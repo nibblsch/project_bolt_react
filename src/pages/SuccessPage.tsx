@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Menu, MessageSquare, Send } from 'lucide-react';
+import { Menu, MessageSquare, Send, X } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { analytics } from '../lib/posthog';
 import { Modal } from '../components/ui/Modal';
+import { ContactUsModal } from '../components/ContactUsModal';
 
 const SUGGESTED_PROMPTS = [
   "What's a normal sleep schedule for a 6-month-old?",
@@ -17,10 +18,15 @@ export default function SuccessPage() {
   const [showHighTraffic, setShowHighTraffic] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const handlePromptSelect = (prompt: string) => {
     setSelectedPrompt(prompt);
-    analytics.track('prompt_selected', { prompt });
+    // Updated tracking method
+    analytics.capture('chat_prompt_selected', {
+      prompt_type: 'pre_generated',
+      prompt_text: prompt
+    });
     setShowHighTraffic(true);
   };
 
@@ -28,14 +34,25 @@ export default function SuccessPage() {
     e.preventDefault();
     if (!userInput.trim()) return;
 
-    analytics.track('custom_prompt_submitted', { prompt: userInput });
+    // Updated tracking method
+    analytics.capture('chat_prompt_submitted', {
+      prompt_type: 'custom',
+      prompt_text: userInput
+    });
     setShowHighTraffic(true);
   };
 
+  // Rest of the component remains exactly the same as the original implementation
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 transform ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'} w-64 bg-white border-r transition-transform duration-200 ease-in-out md:relative md:translate-x-0`}>
+        <button 
+          onClick={() => setIsMenuOpen(false)}
+          className="absolute top-4 right-4 md:hidden"
+        >
+          <X size={24} />
+        </button>
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-4">Chat History</h2>
           <div className="space-y-2">
@@ -52,7 +69,7 @@ export default function SuccessPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen">
         {/* Header */}
-        <header className="bg-white border-b px-4 py-2 flex items-center">
+        <header className="bg-white border-b px-4 py-2 flex items-center justify-between">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="mr-4 md:hidden"
@@ -60,6 +77,12 @@ export default function SuccessPage() {
             <Menu size={24} />
           </button>
           <h1 className="text-xl font-bold text-center flex-1">BabyGPT</h1>
+          <button 
+            onClick={() => setIsContactModalOpen(true)}
+            className="text-indigo-600 hover:text-indigo-800"
+          >
+            Contact Us
+          </button>
         </header>
 
         {/* Chat Area */}
@@ -108,38 +131,43 @@ export default function SuccessPage() {
             </Button>
           </form>
         </div>
+
+        {/* Welcome Modal */}
+        <Modal
+          isOpen={showWelcome}
+          onClose={() => setShowWelcome(false)}
+          title="Welcome to BabyGPT!"
+        >
+          <div className="space-y-4">
+            <p>
+              Your AI-powered parenting assistant is ready to help! Start by selecting
+              a suggested question or ask your own.
+            </p>
+            <Button onClick={() => setShowWelcome(false)} fullWidth>
+              Get Started
+            </Button>
+          </div>
+        </Modal>
+
+        {/* High Traffic Modal */}
+        <Modal
+          isOpen={showHighTraffic}
+          onClose={() => {}} // Empty function since we don't want to allow closing
+          title="High Traffic Notice"
+        >
+          <div className="space-y-4">
+            <p>
+              We are experiencing higher than normal request volume. Please check
+              back in a few minutes.
+            </p>
+          </div>
+        </Modal>
+
+        <ContactUsModal 
+          isOpen={isContactModalOpen} 
+          onClose={() => setIsContactModalOpen(false)} 
+        />
       </div>
-
-      {/* Welcome Modal */}
-      <Modal
-        isOpen={showWelcome}
-        onClose={() => setShowWelcome(false)}
-        title="Welcome to BabyGPT!"
-      >
-        <div className="space-y-4">
-          <p>
-            Your AI-powered parenting assistant is ready to help! Start by selecting
-            a suggested question or ask your own.
-          </p>
-          <Button onClick={() => setShowWelcome(false)} fullWidth>
-            Get Started
-          </Button>
-        </div>
-      </Modal>
-
-      {/* High Traffic Modal */}
-      <Modal
-        isOpen={showHighTraffic}
-        onClose={() => {}} // Empty function since we don't want to allow closing
-        title="High Traffic Notice"
-      >
-        <div className="space-y-4">
-          <p>
-            We are experiencing higher than normal request volume. Please check
-            back in a few minutes.
-          </p>
-        </div>
-      </Modal>
     </div>
   );
 }

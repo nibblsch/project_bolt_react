@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ideation: AI Enablement Insights Tool</title>
+<style>
+  :root {
+    --bg: #f9f9f8;
+    --surface: #ffffff;
+    --surface-2: #f4f4f2;
+    --border: #e4e4e0;
+    --text: #1a1a18;
+    --text-2: #5a5a56;
+    --text-3: #8a8a84;
+    --accent: #2563eb;
+    --accent-soft: #eff6ff;
+    --accent-text: #1d4ed8;
+    --green: #16a34a;
+    --green-soft: #f0fdf4;
+    --amber: #d97706;
+    --amber-soft: #fffbeb;
+    --red: #dc2626;
+    --red-soft: #fef2f2;
+    --purple: #7c3aed;
+    --purple-soft: #f5f3ff;
+    --teal: #0d9488;
+    --teal-soft: #f0fdfa;
+    --font-sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", "Cascadia Code", Consolas, monospace;
+    --radius: 8px;
+    --radius-sm: 5px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110;
+      --surface: #1c1c1a;
+      --surface-2: #242422;
+      --border: #2e2e2c;
+      --text: #e8e8e4;
+      --text-2: #9a9a94;
+      --text-3: #6a6a64;
+      --accent: #60a5fa;
+      --accent-soft: #1e3a5f;
+      --accent-text: #93c5fd;
+      --green: #4ade80;
+      --green-soft: #052e16;
+      --amber: #fbbf24;
+      --amber-soft: #1c1002;
+      --red: #f87171;
+      --red-soft: #1f0f0f;
+      --purple: #a78bfa;
+      --purple-soft: #1e1030;
+      --teal: #2dd4bf;
+      --teal-soft: #042f2e;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+  }
+  .page {
+    max-width: 900px;
+    margin-inline: auto;
+    padding: 2.5rem 1.5rem 5rem;
+  }
+
+  /* ─── Header ─────────────────────────────────────────────── */
+  .doc-header {
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .doc-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 0.5rem;
+  }
+  .doc-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+  .doc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    font-size: 0.82rem;
+    color: var(--text-2);
+  }
+  .doc-meta span::before { content: "· "; color: var(--text-3); }
+  .doc-meta span:first-child::before { content: ""; }
+
+  /* ─── Stats strip ─────────────────────────────────────────── */
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--surface);
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .stat-label {
+    font-size: 0.73rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  /* ─── Sections ────────────────────────────────────────────── */
+  section { margin-bottom: 2.5rem; }
+  h2.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .prose { max-width: 72ch; font-size: 0.92rem; color: var(--text-2); }
+  .prose + .prose { margin-top: 0.75rem; }
+
+  /* ─── Axes ────────────────────────────────────────────────── */
+  .axes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .axis-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: 0.88rem;
+  }
+  .axis-num {
+    font-weight: 700;
+    color: var(--text-3);
+    min-width: 1.2rem;
+    font-size: 0.78rem;
+  }
+  .axis-name { font-weight: 600; color: var(--text); }
+  .axis-desc { color: var(--text-2); }
+
+  /* ─── Jump-list ───────────────────────────────────────────── */
+  .jump-list {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.75rem;
+  }
+  .jump-list-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 0.6rem;
+  }
+  .jump-list ol {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .jump-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .jump-list a {
+    color: var(--accent-text);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .jump-list a:hover { text-decoration: underline; }
+  .jump-rank {
+    min-width: 1.4rem;
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: var(--text-3);
+  }
+  .jump-meta { font-size: 0.75rem; color: var(--text-3); }
+
+  /* ─── Idea cards ──────────────────────────────────────────── */
+  .idea-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .idea-header {
+    padding: 1.1rem 1.25rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .idea-rank {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--border);
+    min-width: 2rem;
+    line-height: 1.3;
+  }
+  .idea-header-main { flex: 1; }
+  .idea-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.01em;
+  }
+  .idea-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .chip {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 99px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .chip-axis { background: var(--accent-soft); color: var(--accent-text); }
+  .chip-conf-high { background: var(--green-soft); color: var(--green); }
+  .chip-conf-med { background: var(--amber-soft); color: var(--amber); }
+  .chip-cx-low { background: var(--green-soft); color: var(--green); }
+  .chip-cx-med { background: var(--amber-soft); color: var(--amber); }
+  .chip-cx-high { background: var(--red-soft); color: var(--red); }
+  .chip-cx-xhigh { background: var(--red-soft); color: var(--red); }
+  .chip-quick-win { background: var(--teal-soft); color: var(--teal); }
+  .chip-combo { background: var(--purple-soft); color: var(--purple); }
+
+  .idea-body { padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .idea-field-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 0.25rem;
+  }
+  .idea-field-value {
+    font-size: 0.875rem;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+  .basis-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    margin-right: 0.3rem;
+    background: var(--surface-2);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    letter-spacing: 0;
+    text-transform: lowercase;
+  }
+  .idea-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  @media (max-width: 600px) { .idea-cols { grid-template-columns: 1fr; } }
+
+  /* ─── SVG diagrams ────────────────────────────────────────── */
+  .diagram-wrap {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin-top: 0.5rem;
+    overflow-x: auto;
+  }
+  .diagram-wrap svg { display: block; margin: 0 auto; }
+
+  /* ─── Rejection table ─────────────────────────────────────── */
+  .rejection-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  thead tr { background: var(--surface-2); }
+  th {
+    text-align: left;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-2);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  .td-name { font-weight: 500; color: var(--text); max-width: 22ch; }
+  .td-reason { max-width: 44ch; }
+
+  /* ─── Footer ──────────────────────────────────────────────── */
+  footer.composition-signal {
+    margin-top: 4rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-3);
+  }
+  footer.composition-signal code { font-family: var(--font-mono); font-size: 0.72rem; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Header ───────────────────────────────────────────────── -->
+  <header class="doc-header">
+    <div class="doc-eyebrow">Ideation Document</div>
+    <h1 class="doc-title">AI Enablement Insights Tool</h1>
+    <div class="doc-meta">
+      <span>Date: <time datetime="2026-07-06">2026-07-06</time></span>
+      <span>Topic: ai-enablement-insights-tool</span>
+      <span>Focus: Build new or extend last30days — specialize for AI &amp; AI enablement</span>
+      <span>Mode: elsewhere-software</span>
+    </div>
+  </header>
+
+  <!-- ── Stats strip ──────────────────────────────────────────── -->
+  <div class="stats-strip" role="region" aria-label="Ideation summary statistics">
+    <div class="stat"><div class="stat-value">46</div><div class="stat-label">Raw candidates</div></div>
+    <div class="stat"><div class="stat-value">7</div><div class="stat-label">Survivors</div></div>
+    <div class="stat"><div class="stat-value">5</div><div class="stat-label">Axes covered</div></div>
+    <div class="stat"><div class="stat-value">6</div><div class="stat-label">Frames used</div></div>
+    <div class="stat"><div class="stat-value">94%</div><div class="stat-label">Top confidence</div></div>
+  </div>
+
+  <!-- ── Grounding Context ────────────────────────────────────── -->
+  <section id="grounding-context">
+    <h2 class="section-title">Topic Context</h2>
+    <p class="prose">A vertical intelligence layer on top of a multi-platform signal aggregator, scoped to <strong>Deployed AI and AI Enablement</strong>. Core job-to-be-done: surface where real human engagement is happening around putting AI into production — not hype, but evidence of practitioners making real decisions (framework switches, model downloads, enterprise trials, funding moves).</p>
+    <p class="prose" style="margin-top:0.75rem"><strong>Sources in scope:</strong> X, Reddit, HN, YouTube, TikTok, Polymarket, open web (existing in last30days); proposed additions: LangChain/LlamaIndex hubs, Hugging Face Trending, W&amp;B/artifact hubs, Product Hunt, VC newsletters. <strong>Out of scope:</strong> Stack Overflow (transactional), Discord (private). <strong>Build foundation:</strong> babygpt repo — React + Vite + TS + Supabase + Stripe + PostHog — auth, payments, and analytics already wired.</p>
+    <p class="prose" style="margin-top:0.75rem"><strong>Key external signals:</strong> LLMOps market $1.8B → $5.43B by 2030 (24.7% CAGR); 57% of enterprise teams have agents in production; 89% have observability but only 52% have evals — a confirmed structural gap. last30days has 44K+ GitHub stars but is general-purpose and one-shot, not persistent. No incumbent owns "persistent, curated intelligence about the AI tooling landscape for practitioners."</p>
+  </section>
+
+  <!-- ── Topic Axes ────────────────────────────────────────────── -->
+  <section id="topic-axes">
+    <h2 class="section-title">Topic Axes</h2>
+    <div class="axes-list">
+      <div class="axis-item"><span class="axis-num">A1</span><span class="axis-name">Signal sourcing —</span><span class="axis-desc">which platforms/sources provide the highest-fidelity AI enablement signal, and how they're ingested</span></div>
+      <div class="axis-item"><span class="axis-num">A2</span><span class="axis-name">Insight synthesis —</span><span class="axis-desc">how raw multi-platform signals are transformed into actionable intelligence (pattern detection, trend diffing, quantitative vs. qualitative)</span></div>
+      <div class="axis-item"><span class="axis-num">A3</span><span class="axis-name">Product positioning —</span><span class="axis-desc">who the user is, what job it does, and how it differs from last30days and adjacent tools</span></div>
+      <div class="axis-item"><span class="axis-num">A4</span><span class="axis-name">Delivery surface —</span><span class="axis-desc">how insights reach users (on-demand query, recurring digest, persistent dashboard, push alerts, MCP)</span></div>
+      <div class="axis-item"><span class="axis-num">A5</span><span class="axis-name">Build strategy —</span><span class="axis-desc">fork/extend last30days vs. rebuild on babygpt vs. new architecture; make-vs-buy on ingestion, LLM layer, and front-end</span></div>
+    </div>
+  </section>
+
+  <!-- ── Ranked Ideas ──────────────────────────────────────────── -->
+  <section id="ranked-ideas">
+    <h2 class="section-title">Ranked Ideas</h2>
+
+    <!-- Jump-list -->
+    <nav class="jump-list" aria-label="Ideas jump list">
+      <div class="jump-list-title">Jump to idea</div>
+      <ol>
+        <li><span class="jump-rank">1.</span><a href="#idea-1">Verdicts + Versioned "State of AI Tooling"</a> <span class="jump-meta">· A3 · Conf 92% · Cx M</span></li>
+        <li><span class="jump-rank">2.</span><a href="#idea-2">Adverse Signal Registry + Framework Health Cards</a> <span class="jump-meta">· A1/A2 · Conf 90% · Cx M</span></li>
+        <li><span class="jump-rank">3.</span><a href="#idea-3">MCP-Native AI Tooling Intelligence Layer</a> <span class="jump-meta">· A4/A5 · Conf 88% · Cx H</span></li>
+        <li><span class="jump-rank">4.</span><a href="#idea-4">Wirecutter Deployment Protocol</a> <span class="jump-meta">· A2 · Conf 87% · Cx M</span></li>
+        <li><span class="jump-rank">5.</span><a href="#idea-5">Permanent Ledger + S-Curve Position Library</a> <span class="jump-meta">· A1/A5 · Conf 85% · Cx H</span></li>
+        <li><span class="jump-rank">6.</span><a href="#idea-6">Vendor Market Intelligence Pivot (B2B)</a> <span class="jump-meta">· A3 · Conf 82% · Cx M</span></li>
+        <li><span class="jump-rank">7.</span><a href="#idea-7">Polymarket Closed-Loop Intelligence</a> <span class="jump-meta">· A1 · Conf 94% · Cx L · Quick win</span></li>
+      </ol>
+    </nav>
+
+    <!-- ── Idea 1 ─────────────────────────────────────────────── -->
+    <article class="idea-card" id="idea-1">
+      <div class="idea-header">
+        <div class="idea-rank">1.</div>
+        <div class="idea-header-main">
+          <div class="idea-title">Verdicts + Versioned "State of AI Tooling"</div>
+          <div class="idea-chips">
+            <span class="chip chip-axis">A3 · Product positioning</span>
+            <span class="chip chip-conf-high">Conf 92%</span>
+            <span class="chip chip-cx-med">Cx Medium</span>
+            <span class="chip chip-combo">Cross-frame synthesis</span>
+          </div>
+        </div>
+      </div>
+      <div class="idea-body">
+        <div>
+          <div class="idea-field-label">Description</div>
+          <div class="idea-field-value">The product emits authoritative, date-stamped <strong>verdicts</strong> with confidence scores rather than surfacing raw signals users must interpret themselves. Example: <em>"VERDICT: LangGraph is the production orchestration layer as of July 2026. Confidence: 91%. Prior verdict: LangChain (changed 4 months ago)."</em> These verdicts are published as weekly <strong>versioned snapshots</strong> (e.g., Snapshot v47, 2026-07-07) — the "State of JS" model for AI tooling. Once practitioners begin citing snapshots in architecture decision records and engineering blogs, the product becomes the named authority. Vendors then have incentive to ensure their tools appear correctly, creating inbound relationship requests at zero cost.</div>
+        </div>
+
+        <div class="diagram-wrap" aria-label="Verdict lifecycle diagram">
+          <svg viewBox="0 0 620 130" width="620" height="130" aria-hidden="true" font-family="system-ui, sans-serif" font-size="12">
+            <!-- Arrow marker -->
+            <defs>
+              <marker id="arr1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#6b7280"/>
+              </marker>
+            </defs>
+            <!-- Boxes -->
+            <rect x="10" y="35" width="110" height="56" rx="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.2"/>
+            <text x="65" y="58" text-anchor="middle" fill="#1d4ed8" font-weight="600" font-size="11">Multi-platform</text>
+            <text x="65" y="73" text-anchor="middle" fill="#1d4ed8" font-size="10">signals (HN, HF,</text>
+            <text x="65" y="85" text-anchor="middle" fill="#1d4ed8" font-size="10">W&amp;B, X, Reddit…)</text>
+
+            <rect x="170" y="35" width="110" height="56" rx="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2"/>
+            <text x="225" y="58" text-anchor="middle" fill="#16a34a" font-weight="600" font-size="11">Synthesis layer</text>
+            <text x="225" y="73" text-anchor="middle" fill="#16a34a" font-size="10">corroboration +</text>
+            <text x="225" y="85" text-anchor="middle" fill="#16a34a" font-size="10">confidence scoring</text>
+
+            <rect x="330" y="35" width="110" height="56" rx="6" fill="#fffbeb" stroke="#fde68a" stroke-width="1.2"/>
+            <text x="385" y="58" text-anchor="middle" fill="#d97706" font-weight="600" font-size="11">Weekly verdict</text>
+            <text x="385" y="73" text-anchor="middle" fill="#d97706" font-size="10">"Snapshot v47"</text>
+            <text x="385" y="85" text-anchor="middle" fill="#d97706" font-size="10">versioned + dated</text>
+
+            <rect x="490" y="35" width="118" height="56" rx="6" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1.2"/>
+            <text x="549" y="58" text-anchor="middle" fill="#7c3aed" font-weight="600" font-size="11">Citations in RFCs,</text>
+            <text x="549" y="73" text-anchor="middle" fill="#7c3aed" font-size="10">blog posts, ADRs</text>
+            <text x="549" y="85" text-anchor="middle" fill="#7c3aed" font-size="10">→ authority compounds</text>
+
+            <!-- Arrows -->
+            <line x1="120" y1="63" x2="168" y2="63" stroke="#6b7280" stroke-width="1.4" marker-end="url(#arr1)"/>
+            <line x1="280" y1="63" x2="328" y2="63" stroke="#6b7280" stroke-width="1.4" marker-end="url(#arr1)"/>
+            <line x1="440" y1="63" x2="488" y2="63" stroke="#6b7280" stroke-width="1.4" marker-end="url(#arr1)"/>
+          </svg>
+        </div>
+
+        <div class="idea-cols">
+          <div>
+            <div class="idea-field-label">Basis</div>
+            <div class="idea-field-value">
+              <span class="basis-tag">external:</span> DORA's four key metrics became the engineering standard not through superior data but because they named and defined metrics precisely enough to be cited. Once practitioners cite "SMI says 73% have moved to LangGraph" in architecture RFCs, you own the category term — the naming and systematization is the defensible act.<br><br>
+              <span class="basis-tag">external:</span> "State of JS" survey: no paid acquisition, cited in thousands of architecture decisions per year because it is the named authority. Its version history is the asset — you can look up what it said about TypeScript in 2019.<br><br>
+              <span class="basis-tag">direct:</span> "No incumbent owns persistent, curated intelligence about the AI tooling landscape for practitioners."
+            </div>
+          </div>
+          <div>
+            <div class="idea-field-label">Why it matters</div>
+            <div class="idea-field-value">If the product surfaces signals, users still decide what those signals mean — recreating the synthesis problem in the user's head. Verdicts with confidence scores make the product <em>citable and embeddable in decision documents</em>. That's a different category of value than a signal aggregator. The compounding loop: more citations → more authority → more citations. Competitors who start later cannot buy this position retroactively.</div>
+            <br>
+            <div class="idea-field-label">Downsides</div>
+            <div class="idea-field-value">Emitting verdicts creates editorial accountability — you're on record if a verdict is wrong. Requires clear methodology disclosure. "Confidence %" must be credibly computed, not asserted. Competitive tools will benchmark against your verdicts.</div>
+          </div>
+        </div>
+        <div>
+          <div class="idea-field-label">Meeting test</div>
+          <div class="idea-field-value">Would committing to verdicts + versioned snapshots — treating the product as a <em>publication</em>, not just a dashboard — change every downstream decision about editorial standards, methodology disclosure, and pricing?</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ── Idea 2 ─────────────────────────────────────────────── -->
+    <article class="idea-card" id="idea-2">
+      <div class="idea-header">
+        <div class="idea-rank">2.</div>
+        <div class="idea-header-main">
+          <div class="idea-title">Adverse Signal Registry + Framework Health Cards</div>
+          <div class="idea-chips">
+            <span class="chip chip-axis">A1 · Signal sourcing</span>
+            <span class="chip chip-axis">A2 · Insight synthesis</span>
+            <span class="chip chip-conf-high">Conf 90%</span>
+            <span class="chip chip-cx-med">Cx Medium</span>
+            <span class="chip chip-combo">Cross-frame synthesis</span>
+          </div>
+        </div>
+      </div>
+      <div class="idea-body">
+        <div>
+          <div class="idea-field-label">Description</div>
+          <div class="idea-field-value">Specifically harvest "switch-away" posts from Reddit and HN — threads where practitioners describe <em>why they left a framework</em> (cost spike, latency regression, reliability failure, governance gap) — and classify them into a structured adverse event taxonomy. A practitioner writing 400 words about tool abandonment is higher fidelity than 10,000 upvotes on a demo. Combine this with a <strong>dual-score Framework Health Card</strong> for every tracked tool: (1) a <em>Social Score</em> (X posts, Reddit upvotes, YouTube views) and (2) a <em>Production Signal</em> (W&amp;B artifact downloads, HF model downloads, Product Hunt install velocity). Present both scores on every card so the gap between talk and deployment is unavoidable. Add momentum tracking (second derivative) to show whether adoption is accelerating or decelerating before the reversal is visible to aggregate observers.</div>
+        </div>
+
+        <div class="diagram-wrap" aria-label="Framework Health Card concept">
+          <svg viewBox="0 0 580 150" width="580" height="150" aria-hidden="true" font-family="system-ui, sans-serif" font-size="12">
+            <!-- Card outline -->
+            <rect x="30" y="15" width="520" height="120" rx="8" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+            <!-- Framework name -->
+            <text x="58" y="44" fill="#111827" font-weight="700" font-size="14">LangGraph</text>
+            <text x="58" y="60" fill="#6b7280" font-size="10">Orchestration framework · Last updated 2026-07-06</text>
+
+            <!-- Social score bar -->
+            <text x="58" y="84" fill="#6b7280" font-size="10" font-weight="600" text-transform="uppercase" letter-spacing="0.05em">SOCIAL SCORE</text>
+            <rect x="58" y="90" width="180" height="10" rx="5" fill="#e5e7eb"/>
+            <rect x="58" y="90" width="153" height="10" rx="5" fill="#60a5fa"/>
+            <text x="246" y="100" fill="#1d4ed8" font-size="10" font-weight="700">85</text>
+
+            <!-- Production signal bar -->
+            <text x="58" y="118" fill="#6b7280" font-size="10" font-weight="600">PRODUCTION SIGNAL</text>
+            <rect x="58" y="124" width="180" height="10" rx="5" fill="#e5e7eb"/>
+            <rect x="58" y="124" width="126" height="10" rx="5" fill="#4ade80"/>
+            <text x="246" y="134" fill="#16a34a" font-size="10" font-weight="700">70</text>
+
+            <!-- Adverse events -->
+            <rect x="310" y="75" width="210" height="60" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+            <text x="320" y="94" fill="#dc2626" font-size="10" font-weight="700">⚠ 3 adverse events (30d)</text>
+            <text x="320" y="109" fill="#6b7280" font-size="9">Cost spike reports ×2</text>
+            <text x="320" y="121" fill="#6b7280" font-size="9">Streaming reliability ×1</text>
+
+            <!-- Momentum indicator -->
+            <text x="430" y="50" fill="#16a34a" font-size="11" font-weight="700">↑ +34% momentum</text>
+            <text x="430" y="63" fill="#6b7280" font-size="9">7-day acceleration</text>
+          </svg>
+        </div>
+
+        <div class="idea-cols">
+          <div>
+            <div class="idea-field-label">Basis</div>
+            <div class="idea-field-value">
+              <span class="basis-tag">direct:</span> "Social media conflates 'cool factor' with enterprise-grade adoption signal." Adverse event posts are the opposite of cool-factor signal — pure deployment reality, uncorrupted by hype. The FDA's FAERS passive surveillance system (adverse drug event reports) is the structural analogy: rare, high-fidelity events that aggregate statistics miss entirely.<br><br>
+              <span class="basis-tag">direct:</span> "W&amp;B/artifact hubs = rare quantitative layer most insight tools skip." The dual-score card makes this gap unavoidable on every card, not buried in a methodology footnote.
+            </div>
+          </div>
+          <div>
+            <div class="idea-field-label">Why it matters</div>
+            <div class="idea-field-value">Solves the hype/signal separation problem at the root — not by better summarization of noisy input, but by adding a fundamentally different signal class. A Google search for "LangGraph vs LlamaIndex" returns blog posts from 6 months ago. A live framework health card with adverse event history and production momentum is categorically different and has no current equivalent.</div>
+            <br>
+            <div class="idea-field-label">Downsides</div>
+            <div class="idea-field-value">Adverse event classification requires NLP training or fine-tuning to distinguish "I switched away because X" from general criticism. Production signal (W&amp;B, HF) requires separate ingestion pipelines with rate limits and ToS review. Dual-score presentation may confuse users who expect a single "trust score."</div>
+          </div>
+        </div>
+        <div>
+          <div class="idea-field-label">Meeting test</div>
+          <div class="idea-field-value">If we can show 3 historical examples where the Production Signal diverged from the Social Score by more than 30 points, and one turned out to be a leading indicator of a framework exit event — does this demo sell the product?</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ── Idea 3 ─────────────────────────────────────────────── -->
+    <article class="idea-card" id="idea-3">
+      <div class="idea-header">
+        <div class="idea-rank">3.</div>
+        <div class="idea-header-main">
+          <div class="idea-title">MCP-Native AI Tooling Intelligence Layer</div>
+          <div class="idea-chips">
+            <span class="chip chip-axis">A4 · Delivery surface</span>
+            <span class="chip chip-axis">A5 · Build strategy</span>
+            <span class="chip chip-conf-high">Conf 88%</span>
+            <span class="chip chip-cx-high">Cx High</span>
+            <span class="chip chip-combo">Cross-frame synthesis</span>
+          </div>
+        </div>
+      </div>
+      <div class="idea-body">
+        <div>
+          <div class="idea-field-label">Description</div>
+          <div class="idea-field-value">Instead of building a dashboard that practitioners must remember to visit, build the AI tooling knowledge base as a <strong>native MCP server</strong> backed by domain-specialized agents. Cursor, Claude Code, and GitHub Copilot users can query it mid-workflow: <em>"What's the current production consensus on vector databases?"</em> gets answered inline, in context, with structured and current data. Each query generates telemetry — what practitioners are asking at the moment of decision — which feeds back into the agent mesh's prioritization (a compounding flywheel the Algolia DocSearch model demonstrates). No habit formation required; discovery happens at the moment of need. The architecture: specialized agents per domain (HF trending agent, framework comparison agent, cost benchmark agent, governance agent) each maintaining a persisted knowledge graph updated on new signal — not a nightly batch. Design this mesh as the architectural target, then cost-optimize via caching and model tiering.</div>
+        </div>
+
+        <div class="diagram-wrap" aria-label="MCP-native architecture diagram">
+          <svg viewBox="0 0 620 160" width="620" height="160" aria-hidden="true" font-family="system-ui, sans-serif" font-size="11">
+            <defs>
+              <marker id="arr3" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L7,3 z" fill="#9ca3af"/>
+              </marker>
+            </defs>
+            <!-- Left: coding tools -->
+            <rect x="8" y="18" width="100" height="30" rx="5" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2"/>
+            <text x="58" y="37" text-anchor="middle" fill="#16a34a" font-weight="600">Cursor / Claude</text>
+            <rect x="8" y="58" width="100" height="30" rx="5" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2"/>
+            <text x="58" y="77" text-anchor="middle" fill="#16a34a" font-weight="600">Copilot / IDE</text>
+            <rect x="8" y="98" width="100" height="30" rx="5" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2"/>
+            <text x="58" y="117" text-anchor="middle" fill="#16a34a" font-weight="600">CLI / API</text>
+
+            <!-- MCP server box -->
+            <rect x="148" y="28" width="110" height="80" rx="7" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+            <text x="203" y="62" text-anchor="middle" fill="#1d4ed8" font-weight="700" font-size="12">MCP Server</text>
+            <text x="203" y="78" text-anchor="middle" fill="#3b82f6" font-size="10">query routing</text>
+            <text x="203" y="91" text-anchor="middle" fill="#3b82f6" font-size="10">+ telemetry log</text>
+
+            <!-- Arrows coding tools → MCP -->
+            <line x1="108" y1="33" x2="146" y2="60" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arr3)"/>
+            <line x1="108" y1="73" x2="146" y2="73" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arr3)"/>
+            <line x1="108" y1="113" x2="146" y2="90" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arr3)"/>
+
+            <!-- Domain agents -->
+            <rect x="308" y="10" width="130" height="28" rx="5" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
+            <text x="373" y="28" text-anchor="middle" fill="#d97706" font-size="10" font-weight="600">HF Trending Agent</text>
+            <rect x="308" y="46" width="130" height="28" rx="5" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
+            <text x="373" y="64" text-anchor="middle" fill="#d97706" font-size="10" font-weight="600">Framework Comparison</text>
+            <rect x="308" y="82" width="130" height="28" rx="5" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
+            <text x="373" y="100" text-anchor="middle" fill="#d97706" font-size="10" font-weight="600">Cost Benchmark Agent</text>
+            <rect x="308" y="118" width="130" height="28" rx="5" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
+            <text x="373" y="136" text-anchor="middle" fill="#d97706" font-size="10" font-weight="600">Governance Agent</text>
+
+            <!-- MCP → agents -->
+            <line x1="258" y1="55" x2="306" y2="24" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arr3)"/>
+            <line x1="258" y1="63" x2="306" y2="60" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arr3)"/>
+            <line x1="258" y1="72" x2="306" y2="96" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arr3)"/>
+            <line x1="258" y1="80" x2="306" y2="132" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arr3)"/>
+
+            <!-- Signal sources -->
+            <rect x="490" y="50" width="120" height="68" rx="6" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1"/>
+            <text x="550" y="73" text-anchor="middle" fill="#7c3aed" font-size="10" font-weight="600">Signal sources</text>
+            <text x="550" y="88" text-anchor="middle" fill="#8b5cf6" font-size="9">HF · W&amp;B · HN</text>
+            <text x="550" y="101" text-anchor="middle" fill="#8b5cf6" font-size="9">Reddit · X · PH</text>
+            <text x="550" y="113" text-anchor="middle" fill="#8b5cf6" font-size="9">Newsletters…</text>
+
+            <line x1="438" y1="82" x2="488" y2="84" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arr3)"/>
+          </svg>
+        </div>
+
+        <div class="idea-cols">
+          <div>
+            <div class="idea-field-label">Basis</div>
+            <div class="idea-field-value">
+              <span class="basis-tag">direct:</span> "MCP standardizing tool integration, disrupting heavyweight frameworks." MCP is the current integration standard — a product that delivers as an MCP server lives inside the moment of decision, not beside it.<br><br>
+              <span class="basis-tag">external:</span> Stripe API embedding model: Stripe became default not through marketing but through embedding into developer workflow at the moment payment logic was needed. Distribution through workflow context beats distribution through habit formation.<br><br>
+              <span class="basis-tag">direct:</span> "85% of developers use AI coding tools regularly" — the distribution channel already exists if the product lives inside those tools.
+            </div>
+          </div>
+          <div>
+            <div class="idea-field-label">Why it matters</div>
+            <div class="idea-field-value">The hardest problem for any insight product is getting practitioners to check it regularly. An MCP server eliminates that problem entirely — the product is consulted when the practitioner is already making a decision. Query telemetry from coding sessions is also qualitatively different from any social signal: it reveals decisions in progress, not retrospective discussion. This is a second-order data asset no social scraper can replicate.</div>
+            <br>
+            <div class="idea-field-label">Downsides</div>
+            <div class="idea-field-value">MCP server registration and testing across Cursor, Copilot, and Claude Code adds integration complexity. Persistent agent state requires a real-time data architecture from day one. High complexity raises time-to-first-useful output significantly. May need a companion UI for users whose coding tools don't yet support MCP.</div>
+          </div>
+        </div>
+        <div>
+          <div class="idea-field-label">Meeting test</div>
+          <div class="idea-field-value">Would building the insights delivery as an MCP server first — rather than any UI — be a serious architectural debate worth having before writing a single frontend component?</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ── Idea 4 ─────────────────────────────────────────────── -->
+    <article class="idea-card" id="idea-4">
+      <div class="idea-header">
+        <div class="idea-rank">4.</div>
+        <div class="idea-header-main">
+          <div class="idea-title">Wirecutter Deployment Protocol</div>
+          <div class="idea-chips">
+            <span class="chip chip-axis">A2 · Insight synthesis</span>
+            <span class="chip chip-conf-high">Conf 87%</span>
+            <span class="chip chip-cx-med">Cx Medium</span>
+          </div>
+        </div>
+      </div>
+      <div class="idea-body">
+        <div>
+          <div class="idea-field-label">Description</div>
+          <div class="idea-field-value">Wirecutter's defensibility isn't aggregating reviews — it's running standardized tests others can replicate and challenge. Build canonical <strong>deployment scenarios</strong> (e.g., "10K requests/day RAG pipeline, $50/month ceiling, GPT-4o-mini vs. Claude Haiku 4.5 vs. Gemini Flash") and publish reproducible cost and performance results drawn from public W&amp;B artifact data. The methodology — documented, open, and reproducible — is the moat, not the scores. Each major model release triggers an automatic re-run; the delta between versions is the news. The tool becomes a <strong>reference benchmark layer</strong> for practitioners comparing deployment options — the first result they'd trust over a vendor blog post.</div>
+        </div>
+        <div class="idea-cols">
+          <div>
+            <div class="idea-field-label">Basis</div>
+            <div class="idea-field-value">
+              <span class="basis-tag">direct:</span> "W&amp;B/artifact hubs = rare quantitative layer (cost, performance) most insight tools skip" — explicitly identified in grounding as underused.<br><br>
+              <span class="basis-tag">direct:</span> "Key gap: 89% teams have observability, only 52% have evals." The evals gap is precisely the Wirecutter-shaped hole: teams can monitor their own stack but have no external reference to benchmark against.<br><br>
+              <span class="basis-tag">external:</span> Wirecutter: defensibility comes from methodology, not score aggregation. The testing protocol earns citations; scores alone do not.
+            </div>
+          </div>
+          <div>
+            <div class="idea-field-label">Why it matters</div>
+            <div class="idea-field-value">Creates the first reproducible benchmark layer for production AI deployments. Every major model release becomes a computable, searchable publishing event — not a press release. Practitioners evaluating whether Claude Haiku 4.5 is cheaper than GPT-4o-mini at 10K RPD have no structured answer anywhere today. This product is that answer.</div>
+            <br>
+            <div class="idea-field-label">Downsides</div>
+            <div class="idea-field-value">Defining the canonical deployment scenarios requires editorial judgment that will be contested. W&amp;B public run quality varies — data cleaning is non-trivial. "Reproducible" requires real test infrastructure and compute budget, not just data ingestion. Methodology disputes from vendors whose products score poorly are a known issue for Wirecutter-style producers.</div>
+          </div>
+        </div>
+        <div>
+          <div class="idea-field-label">Meeting test</div>
+          <div class="idea-field-value">What are the 5 canonical deployment scenarios that cover 80% of practitioner use cases — and does publishing those scenarios openly as the methodology change how competitors engage with the product?</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ── Idea 5 ─────────────────────────────────────────────── -->
+    <article class="idea-card" id="idea-5">
+      <div class="idea-header">
+        <div class="idea-rank">5.</div>
+        <div class="idea-header-main">
+          <div class="idea-title">Permanent Ledger + S-Curve Position Library</div>
+          <div class="idea-chips">
+            <span class="chip chip-axis">A1 · Signal sourcing</span>
+            <span class="chip chip-axis">A5 · Build strategy</span>
+            <span class="chip chip-conf-med">Conf 85%</span>
+            <span class="chip chip-cx-high">Cx High</span>
+          </div>
+        </div>
+      </div>
+      <div class="idea-body">
+        <div>
+          <div class="idea-field-label">Description</div>
+          <div class="idea-field-value">Every signal is timestamped and retained — not rolled up and discarded. Build the first <strong>permanent, structured ledger</strong> of AI tooling adoption decisions: a Wayback Machine for framework consensus. Each entity (LangGraph, RAGAS, Braintrust, etc.) has a versioned timeline of signal events. After 18 months, this becomes a <strong>S-curve position library</strong>: given a tool's current signal trajectory, pattern-match it against historical comparables. "This tool's trajectory matches LangChain's signal in Q2 2023, which preceded plateau in ~8 months." Pair with a <strong>Longitudinal Obituary Index</strong>: reconstruct the leading-indicator signature of tools that lost critical mass between 2021–2025, then apply it as a predictive classifier on currently active tools. The product becomes a framework early warning system.</div>
+        </div>
+        <div class="idea-cols">
+          <div>
+            <div class="idea-field-label">Basis</div>
+            <div class="idea-field-value">
+              <span class="basis-tag">direct:</span> "No incumbent owns persistent, curated intelligence about the AI tooling landscape for practitioners" — the grounding explicitly identifies this structural gap.<br><br>
+              <span class="basis-tag">external:</span> Bloomberg Terminal: its value is not the current price (available everywhere free) — it's 40 years of financial history queryable in a structured way. The history is the uncopiable asset.<br><br>
+              <span class="basis-tag">direct:</span> "MCP standardizing tool integration, disrupting heavyweight frameworks — LlamaIndex co-founder acknowledged." This live disruption would have been visible 8 months earlier in a 5-year ledger with the right pattern detection.
+            </div>
+          </div>
+          <div>
+            <div class="idea-field-label">Why it matters</div>
+            <div class="idea-field-value">A rolling window is a commodity — any competitor can replicate it in weeks. A structured ledger with 18+ months of timestamped practitioner signals is not reproducible by a late entrant regardless of budget. Every day of additional data makes the comparable-pattern prediction better. Starting now means arriving at the LLMOps market's peak spend phase with a moat that has been building for 18+ months.</div>
+            <br>
+            <div class="idea-field-label">Downsides</div>
+            <div class="idea-field-value">Historical backfill (2021–present) is a significant one-time cost. Pattern-matching to S-curves requires enough historical tools to have gone through a full lifecycle — early data will be thin. Prediction ("this tool will plateau in 8 months") creates accountability for wrong forecasts. Failure forensics require post-mortem data that may not be structured or available.</div>
+          </div>
+        </div>
+        <div>
+          <div class="idea-field-label">Meeting test</div>
+          <div class="idea-field-value">Which sources can be backfilled to 2021–2022, what does initial historical indexing cost, and does committing to a permanent ledger architecture (vs. rolling window) change the data storage decisions from day one?</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ── Idea 6 ─────────────────────────────────────────────── -->
+    <article class="idea-card" id="idea-6">
+      <div class="idea-header">
+        <div class="idea-rank">6.</div>
+        <div class="idea-header-main">
+          <div class="idea-title">Vendor Market Intelligence Pivot (B2B)</div>
+          <div class="idea-chips">
+            <span class="chip chip-axis">A3 · Product positioning</span>
+            <span class="chip chip-conf-med">Conf 82%</span>
+            <span class="chip chip-cx-med">Cx Medium</span>
+          </div>
+        </div>
+      </div>
+      <div class="idea-body">
+        <div>
+          <div class="idea-field-label">Description</div>
+          <div class="idea-field-value">The assumed customer is the practitioner choosing tools. The assumption-break: the higher-willingness-to-pay buyer is the <strong>AI tooling vendor</strong> (LangChain, Cursor, Anthropic, Modal, Mistral) wanting to understand their competitive position in the practitioner mind. They need the same signals — framework switches, community sentiment, adoption velocity — but for market intelligence, not personal decision-making. Different buyer, different pricing model (B2B enterprise contract vs. per-seat SaaS), different data emphasis (competitive comparison, not stack recommendations). The same underlying data product supports both segments; the difference is framing, packaging, and who signs the contract.</div>
+        </div>
+        <div class="idea-cols">
+          <div>
+            <div class="idea-field-label">Basis</div>
+            <div class="idea-field-value">
+              <span class="basis-tag">direct:</span> "Coding tools: 85% devs use AI; Cursor $2B ARR." Cursor has both the budget and competitive motivation to know exactly how practitioners perceive them versus Copilot. That is a different product motion than selling to individual developers.<br><br>
+              <span class="basis-tag">external:</span> SimilarWeb, Sensor Tower, and G2 all built primary revenue selling intelligence to vendors rather than to end-users who consume the products being measured. The same data product, two very different buyer motions.
+            </div>
+          </div>
+          <div>
+            <div class="idea-field-label">Why it matters</div>
+            <div class="idea-field-value">Vendor market intelligence has 10-100× the per-seat pricing of practitioner tools and is sold through a direct enterprise motion. The babygpt repo already has Stripe wired — but the B2B motion requires a different checkout and contract flow. Building both audiences from one data product avoids the "two products" problem while accessing two very different revenue ceilings.</div>
+            <br>
+            <div class="idea-field-label">Downsides</div>
+            <div class="idea-field-value">Enterprise B2B sales requires a sales motion the current solo/small-team builder context may not support. Vendor customers may have conflicts of interest with the same data being sold to practitioners. Serving both may create editorial tension — whose interests does the verdict serve?</div>
+          </div>
+        </div>
+        <div>
+          <div class="idea-field-label">Meeting test</div>
+          <div class="idea-field-value">Would pitching this to LangChain's or Cursor's growth team as a competitive intelligence product — with annual contract pricing — change the entire sales strategy, product roadmap, and what "feature complete" means?</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ── Idea 7 ─────────────────────────────────────────────── -->
+    <article class="idea-card" id="idea-7">
+      <div class="idea-header">
+        <div class="idea-rank">7.</div>
+        <div class="idea-header-main">
+          <div class="idea-title">Polymarket Closed-Loop Intelligence</div>
+          <div class="idea-chips">
+            <span class="chip chip-axis">A1 · Signal sourcing</span>
+            <span class="chip chip-conf-high">Conf 94%</span>
+            <span class="chip chip-cx-low">Cx Low</span>
+            <span class="chip chip-quick-win">Quick win</span>
+          </div>
+        </div>
+      </div>
+      <div class="idea-body">
+        <div>
+          <div class="idea-field-label">Description</div>
+          <div class="idea-field-value">Polymarket is already in the source set but used passively. Flip this: when a Polymarket contract related to AI deployment moves 15+ points in 24 hours, that price movement is a compressed summary of market belief updating in real time. Automatically trigger a <strong>deep-dive synthesis</strong> of correlated HN, X, and Reddit threads from the same 24-hour window to explain what drove the move. Output: <em>"LangChain-vs-LangGraph contract moved 18 points today — here's what practitioners were actually saying."</em> Financial journalists do this for equity moves; nobody does it for AI deployment prediction markets. This is the lowest-cost unique feature to prototype: Polymarket is already wired in last30days, and the trigger logic is a 2–3 day build.</div>
+        </div>
+
+        <div class="diagram-wrap" aria-label="Polymarket closed-loop trigger diagram">
+          <svg viewBox="0 0 560 100" width="560" height="100" aria-hidden="true" font-family="system-ui, sans-serif" font-size="11">
+            <defs>
+              <marker id="arr7" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L7,3 z" fill="#9ca3af"/>
+              </marker>
+            </defs>
+            <rect x="10" y="30" width="130" height="40" rx="6" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1.2"/>
+            <text x="75" y="52" text-anchor="middle" fill="#7c3aed" font-weight="600">Polymarket contract</text>
+            <text x="75" y="65" text-anchor="middle" fill="#8b5cf6" font-size="10">moves ≥15 pts / 24h</text>
+
+            <rect x="190" y="30" width="120" height="40" rx="6" fill="#fffbeb" stroke="#fde68a" stroke-width="1.2"/>
+            <text x="250" y="52" text-anchor="middle" fill="#d97706" font-weight="600">Auto-trigger</text>
+            <text x="250" y="65" text-anchor="middle" fill="#d97706" font-size="10">synthesis job fires</text>
+
+            <rect x="360" y="18" width="180" height="64" rx="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.2"/>
+            <text x="450" y="40" text-anchor="middle" fill="#1d4ed8" font-weight="600">Correlated threads</text>
+            <text x="450" y="54" text-anchor="middle" fill="#3b82f6" font-size="10">HN + X + Reddit (same 24h)</text>
+            <text x="450" y="68" text-anchor="middle" fill="#3b82f6" font-size="10">→ "Why did the market move?"</text>
+
+            <line x1="140" y1="50" x2="188" y2="50" stroke="#9ca3af" stroke-width="1.3" marker-end="url(#arr7)"/>
+            <line x1="310" y1="50" x2="358" y2="50" stroke="#9ca3af" stroke-width="1.3" marker-end="url(#arr7)"/>
+          </svg>
+        </div>
+
+        <div class="idea-cols">
+          <div>
+            <div class="idea-field-label">Basis</div>
+            <div class="idea-field-value">
+              <span class="basis-tag">direct:</span> "Polymarket already present — underutilized for AI deployment bets specifically" — a named gap in the grounding document, not an inference.<br><br>
+              <span class="basis-tag">reasoned:</span> Prediction market prices encode crowd-aggregated belief updating. Signal value is highest at the moment of sharp movement, not at equilibrium — the move is the trigger; the practitioner thread explanation is the product. The closed-loop synthesis is a 2-3 day build on top of what last30days already does.
+            </div>
+          </div>
+          <div>
+            <div class="idea-field-label">Why it matters</div>
+            <div class="idea-field-value">Turns Polymarket from a passive data point into an active synthesis trigger. Creates a "why did the market move" intelligence layer with no current competitor in the AI tooling domain. As the lowest-cost unique feature to prototype, this is also the best candidate for proving the value proposition quickly — a demo-able moment that justifies the broader build.</div>
+            <br>
+            <div class="idea-field-label">Downsides</div>
+            <div class="idea-field-value">Only a handful of Polymarket contracts are AI-tooling-specific right now — contract count may be too low for reliable triggers. Prediction markets can move on noise as easily as signal. "Why did the market move" narratives may not always have a clear practitioner discussion cause.</div>
+          </div>
+        </div>
+        <div>
+          <div class="idea-field-label">Meeting test</div>
+          <div class="idea-field-value">How many Polymarket contracts are AI-deployment-specific enough to monitor right now, and has the contract market grown enough to make threshold triggers non-trivial — i.e., do we get at least one real trigger per week?</div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ── Rejection Summary ─────────────────────────────────────── -->
+  <section id="rejection-summary">
+    <h2 class="section-title">Rejection Summary</h2>
+    <div class="rejection-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Idea</th>
+            <th>Reason Rejected</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>—</td><td class="td-name">Funding-to-HF-Download Bridge (2.7)</td><td class="td-reason">Duplicate of Funding-to-Practitioner-Response Correlation (1.7); latter is more complete and includes the full multi-platform synthesis step</td></tr>
+          <tr><td>—</td><td class="td-name">Pre-Built Ontology (2.5)</td><td class="td-reason">Duplicate of Define the Ontology First (4.1); subsumed into Idea 5's build strategy framing</td></tr>
+          <tr><td>—</td><td class="td-name">Automated Live Framework Comparison Tables (2.6)</td><td class="td-reason">Weaker version of Idea 4 (Wirecutter Deployment Protocol); comparison tables without a reproducible methodology are a dashboard feature, not a defensible product direction</td></tr>
+          <tr><td>—</td><td class="td-name">The Product Creates Ground Truth (3.7)</td><td class="td-reason">Duplicate of Practitioner Panel Network (6.5); the panel concept is better elaborated in the Frame 6 version</td></tr>
+          <tr><td>—</td><td class="td-name">Build the Practitioner Panel Before You Need It (4.3)</td><td class="td-reason">Duplicate of Practitioner Panel Network (6.5)</td></tr>
+          <tr><td>—</td><td class="td-name">Benchmark Ledger From W&amp;B Data (4.4)</td><td class="td-reason">Subsumed by Idea 4 (Wirecutter Deployment Protocol), which frames the methodology-as-moat argument more completely</td></tr>
+          <tr><td>—</td><td class="td-name">Replace Rolling Window With Permanent Ledger (3.6)</td><td class="td-reason">Merged into Idea 5 (Permanent Ledger + S-Curve Position Library); the Bloomberg analogy is retained there</td></tr>
+          <tr><td>—</td><td class="td-name">The 30-Day Window Is One Size Fits Wrong (3.1)</td><td class="td-reason">Architectural principle, not a standalone product direction; addressed within the multi-speed signal sourcing implicit in Idea 2 and 5</td></tr>
+          <tr><td>—</td><td class="td-name">Aggregation Is the Wrong Model (3.2)</td><td class="td-reason">Design principle motivating Idea 2 (corroboration scoring), not a standalone candidate; better as rationale than as a direction</td></tr>
+          <tr><td>—</td><td class="td-name">Practitioner-Dense Source Weighting (1.5)</td><td class="td-reason">Subsumed by Ensemble Signal Weighting (5.4) and automated corroboration (Idea 2); stated less precisely</td></tr>
+          <tr><td>—</td><td class="td-name">The Eval Tooling Gap as a Positioning Anchor (1.4)</td><td class="td-reason">ICP narrowing insight, not a product feature; better as context for brainstorming Idea 1 or 4's positioning</td></tr>
+          <tr><td>—</td><td class="td-name">Signal Lag Map (1.1)</td><td class="td-reason">Interesting UX feature but not a product direction; most value captured as a proof point within the corroboration scoring system of Idea 2</td></tr>
+          <tr><td>—</td><td class="td-name">Role-Aware Proactive Push (2.1)</td><td class="td-reason">Below ambition floor vs. Idea 7's Autonomous Surveillance Mode; inferring "decision state" from browsing behavior lacks a credible technical basis in the stated context</td></tr>
+          <tr><td>—</td><td class="td-name">Framework Migration Threshold Alerts (2.2)</td><td class="td-reason">Delivery mechanism for Idea 2, not a standalone direction; merged into Idea 2's ecosystem health framing</td></tr>
+          <tr><td>—</td><td class="td-name">Practitioner Panel Network (6.5)</td><td class="td-reason">Strong signal sourcing idea but Large complexity and requires 90-day recruiting effort before any signal is available; better as a v2 layer once the product proves its value proposition</td></tr>
+          <tr><td>—</td><td class="td-name">Sentinel Practitioner Network (5.1)</td><td class="td-reason">Strong leading-indicator concept but operationally complex; identifying 100 high-signal practitioners and maintaining their classification requires ongoing editorial judgment. Strong candidate for v2.</td></tr>
+          <tr><td>—</td><td class="td-name">Ensemble Signal Weighting (5.4)</td><td class="td-reason">Requires calibration data (historical backtest against known outcomes) to be credible — better as a Phase 2 architecture upgrade after the permanent ledger (Idea 5) provides the baseline</td></tr>
+          <tr><td>—</td><td class="td-name">Tool Survival Actuarial Curves (5.7)</td><td class="td-reason">Probabilistic forecasting requires deep historical data to be accurate; early predictions would be speculative. Revisit after 12 months of ledger operation.</td></tr>
+          <tr><td>—</td><td class="td-name">Bond-Style Persistent Tool Ratings (5.8)</td><td class="td-reason">Duplicate of the versioned verdicts in Idea 1; the "context-dependent ratings" angle (version + deployment config) is interesting but better addressed within Idea 4 (Wirecutter Protocol)</td></tr>
+          <tr><td>—</td><td class="td-name">Accumulating Knowledge Base (1.6)</td><td class="td-reason">Subsumed by Idea 5 (Permanent Ledger); Idea 5 is the fully developed version of this observation</td></tr>
+          <tr><td>—</td><td class="td-name">MCP Disruption Velocity Tracker (1.8)</td><td class="td-reason">Strong specific signal source but a feature-level addition to the signal sourcing axis, not a product direction; fits naturally as a named axis within Idea 2 or Idea 3's domain agent mesh</td></tr>
+          <tr><td>—</td><td class="td-name">Funding-to-Practitioner-Response Correlation (1.7)</td><td class="td-reason">Strong synthesis idea but absorbed into Idea 2's broader "production signal vs. social signal" framing; works better as a named feature within the health card than as a standalone direction</td></tr>
+          <tr><td>—</td><td class="td-name">Zero-Query Competitive Signal Monitor (2.8)</td><td class="td-reason">Good expansion idea but most of its value is captured by combining Idea 3 (MCP, zero-query by design) with Idea 1 (verdicts cover competitive positioning). Better as a product feature than a top-level direction.</td></tr>
+          <tr><td>—</td><td class="td-name">Pre-Assembled Weekly Intelligence Packets (2.3)</td><td class="td-reason">Good delivery surface concept; edges too close to "newsletter" to be a distinctive product direction. Best as the delivery mechanism for Idea 1's versioned snapshots rather than a standalone direction.</td></tr>
+          <tr><td>—</td><td class="td-name">Job Posting Stack Archaeology (5.6)</td><td class="td-reason">Strong enterprise signal source but a signal sourcing addition, not a product direction. Excellent v1.1 feature within Idea 2 or 5's sourcing layer once core signals are validated.</td></tr>
+          <tr><td>—</td><td class="td-name">Cost Pyramid Pipeline (6.8)</td><td class="td-reason">Important architectural discipline but describes how to build, not what to build. Belongs in a brainstorm or plan artifact, not a top-level product direction.</td></tr>
+          <tr><td>—</td><td class="td-name">Agent Mesh Architecture (6.3)</td><td class="td-reason">Merged into Idea 3 (MCP-Native Layer) as the recommended architectural approach. As a standalone direction it describes a build strategy, not a user-facing product proposition.</td></tr>
+          <tr><td>—</td><td class="td-name">Autonomous Surveillance Mode (6.2)</td><td class="td-reason">Absorbed by Idea 7 (Polymarket trigger as prototype) and Idea 3 (MCP as zero-query delivery). Good as a delivery mechanism but not a standalone product direction at this stage.</td></tr>
+          <tr><td>—</td><td class="td-name">Synthetic Analyst Panel (6.4)</td><td class="td-reason">Interesting output format (structured disagreement surface) but requires stable LLM personas that hold consistent analytical lenses over time — non-trivial to maintain. Better explored after core signal sourcing and synthesis are proven.</td></tr>
+          <tr><td>—</td><td class="td-name">Define the Ontology First (4.1)</td><td class="td-reason">Build strategy prerequisite, not a user-facing direction; strongly recommended as the first sprint within any of the surviving ideas that reach brainstorm phase. High value, wrong artifact.</td></tr>
+          <tr><td>—</td><td class="td-name">Systematize Framework Switch as Named Metric (4.2)</td><td class="td-reason">Powerful compounding idea; subsumed by Idea 1 (verdicts become the named metric) combined with Idea 2 (framework health cards are the per-entity expression). Better as a named feature within those directions.</td></tr>
+          <tr><td>—</td><td class="td-name">Track VC Newsletter Velocity / Time-to-Mainstream (4.6)</td><td class="td-reason">Strong compounding idea but requires 6+ months of calibrated data before predictive value materializes. Excellent v2 feature within Idea 5's ledger once the historical record is established.</td></tr>
+          <tr><td>—</td><td class="td-name">Weekly Versioned Snapshot (4.7)</td><td class="td-reason">Merged into Idea 1 (Verdicts + Versioned State of AI Tooling) as the publication mechanism.</td></tr>
+          <tr><td>—</td><td class="td-name">Five-Year S-Curve Position Library (6.7)</td><td class="td-reason">Merged into Idea 5 (Permanent Ledger + S-Curve). The Bloomberg and pattern-matching angles are both present there.</td></tr>
+          <tr><td>—</td><td class="td-name">Longitudinal Obituary Index (6.1)</td><td class="td-reason">Merged into Idea 5 as the failure forensics layer. Strong standalone idea but highest value when paired with the permanent ledger's historical depth.</td></tr>
+          <tr><td>—</td><td class="td-name">Framework Tire Degradation Model (5.2)</td><td class="td-reason">Second-derivative momentum detection is genuinely novel; absorbed into Idea 2 (Framework Health Cards) as the momentum tracking component. Too narrow to be a top-level product direction on its own.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="composition-signal">
+    Composed <time datetime="2026-07-06T00:00:00Z">2026-07-06</time> by <code>ce-ideate</code> · run-id <code>5778ef6e</code> · 46 raw candidates across 6 frames · 7 survivors
+  </footer>
+
+</div>
+</body>
+</html>
